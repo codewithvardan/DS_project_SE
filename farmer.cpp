@@ -1,134 +1,201 @@
+
+#ifndef FARMER_H
+#define FARMER_H
+
 #include <iostream>
-#include <cstring>
+#include <string>
 using namespace std;
 
-/* ====================== FARMER MODULE (ARRAY) ====================== */
-
+// Ek farmer ki details store karne wali class
 class Farmer {
-private:
-    int id;
-    char name[50];
-    char role[30];         // "Farmer", "Labor", "Supervisor"
-    float wagePerDay;
-    int daysWorked;
-
-    // Array to store up to 50 farmers
-    static Farmer farmerList[50];
-    static int farmerCount;
-
 public:
-    Farmer() {
-        id = 0;
-        name[0] = '\0';
-        role[0] = '\0';
-        wagePerDay = 0;
-        daysWorked = 0;
-    }
+    int id;
+    string name;
+    int days;
+    float dailyWage;
 
+    // Farmer ki details input lena
     void input() {
         cout << "Enter Farmer ID: ";
         cin >> id;
 
         cout << "Enter Name: ";
-        cin.ignore();
-        cin.getline(name, 50);
+        cin >> name;
 
-        cout << "Enter Role: ";
-        cin.getline(role, 30);
+        cout << "Enter Working Days: ";
+        cin >> days;
 
-        cout << "Enter Wage Per Day: ";
-        cin >> wagePerDay;
-
-        cout << "Enter Days Worked: ";
-        cin >> daysWorked;
+        cout << "Enter Daily Wage: ";
+        cin >> dailyWage;
     }
 
-    void display() const {
-        cout << "ID: " << id
-             << " | Name: " << name
-             << " | Role: " << role
-             << " | Wage/Day: " << wagePerDay
-             << " | Days Worked: " << daysWorked
-             << " | Total Pay: " << (wagePerDay * daysWorked) << "\n";
-    }
-
-    static void addFarmer() {
-        if (farmerCount >= 50) {
-            cout << "Farmer list is full.\n";
-            return;
-        }
-
-        farmerList[farmerCount].input();
-        farmerCount++;
-
-        cout << "Farmer added.\n";
-    }
-
-    static void listFarmers() {
-        if (farmerCount == 0) {
-            cout << "No farmers available.\n";
-            return;
-        }
-
-        for (int i = 0; i < farmerCount; i++) {
-            farmerList[i].display();
-        }
-    }
-
-    static Farmer* searchFarmerById(int id) {
-        for (int i = 0; i < farmerCount; i++) {
-            if (farmerList[i].id == id)
-                return &farmerList[i];
-        }
-        return nullptr;
-    }
-
-    static void updateFarmer() {
-        int id;
-        cout << "Enter Farmer ID to update: ";
-        cin >> id;
-
-        Farmer* f = searchFarmerById(id);
-        if (!f) {
-            cout << "Farmer not found.\n";
-            return;
-        }
-
-        cout << "Enter new details for this farmer:\n";
-        f->input();
-
-        cout << "Farmer updated.\n";
-    }
-
-    static void deleteFarmer() {
-        int id;
-        cout << "Enter Farmer ID to delete: ";
-        cin >> id;
-
-        int idx = -1;
-
-        for (int i = 0; i < farmerCount; i++) {
-            if (farmerList[i].id == id) {
-                idx = i;
-                break;
-            }
-        }
-
-        if (idx == -1) {
-            cout << "Farmer not found.\n";
-            return;
-        }
-
-        // Shift elements left
-        for (int i = idx; i < farmerCount - 1; i++) {
-            farmerList[i] = farmerList[i + 1];
-        }
-
-        farmerCount--;
-        cout << "Farmer deleted.\n";
+    void display() {
+        // Total wage = working days * daily wage
+        cout << id << "\t" << name << "\t"
+             << days << "\t" << dailyWage
+             << "\t" << days * dailyWage << endl;
     }
 };
 
-// Define static members for Farmer
-Farmer Farmer::farmerList[50];
-int Farmer::farmerCount = 0;
+class FarmerManagement {
+private:
+    Farmer farmers[100]; // Farmer objects ka array
+    int count;
+
+public:
+    FarmerManagement() {
+        count = 0;
+    }
+
+    // ID se farmer ki array position find karna
+    int findFarmer(int id) {
+        for (int i = 0; i < count; i++) {
+            if (farmers[i].id == id)
+                return i;
+        }
+
+        return -1; // Farmer nahi mila
+    }
+
+    void addFarmer() {
+        if (count == 100) {
+            cout << "Storage full!\n";
+            return;
+        }
+
+        // Next empty position par input lenge
+        farmers[count].input();
+
+        // Same ID dobara add nahi hone denge
+        if (findFarmer(farmers[count].id) != -1) {
+            cout << "Farmer ID already exists!\n";
+            return;
+        }
+
+        if (farmers[count].days < 0 ||
+            farmers[count].dailyWage < 0) {
+            cout << "Invalid days or wage!\n";
+            return;
+        }
+
+        count++;
+        cout << "Farmer added!\n";
+    }
+
+    void displayFarmers() {
+        if (count == 0) {
+            cout << "No farmers found!\n";
+            return;
+        }
+
+        cout << "ID\tName\tDays\tWage\tTotal\n";
+
+        // Array traverse karke saare farmers print
+        for (int i = 0; i < count; i++) {
+            farmers[i].display();
+        }
+    }
+
+    void searchFarmer() {
+        int id;
+        cout << "Enter Farmer ID: ";
+        cin >> id;
+
+        int pos = findFarmer(id);
+
+        if (pos == -1)
+            cout << "Farmer not found!\n";
+        else
+            farmers[pos].display();
+    }
+
+    void updateFarmer() {
+        int id;
+        cout << "Enter Farmer ID: ";
+        cin >> id;
+
+        int pos = findFarmer(id);
+
+        if (pos == -1) {
+            cout << "Farmer not found!\n";
+            return;
+        }
+
+        // ID same rahega, baaki details change hongi
+        cout << "Enter New Name: ";
+        cin >> farmers[pos].name;
+
+        cout << "Enter Working Days: ";
+        cin >> farmers[pos].days;
+
+        cout << "Enter Daily Wage: ";
+        cin >> farmers[pos].dailyWage;
+
+        cout << "Farmer updated!\n";
+    }
+
+    void deleteFarmer() {
+        int id;
+        cout << "Enter Farmer ID: ";
+        cin >> id;
+
+        int pos = findFarmer(id);
+
+        if (pos == -1) {
+            cout << "Farmer not found!\n";
+            return;
+        }
+
+        // Delete hone ke baad remaining elements left shift
+        for (int i = pos; i < count - 1; i++) {
+            farmers[i] = farmers[i + 1];
+        }
+
+        count--;
+        cout << "Farmer deleted!\n";
+    }
+
+    void totalWages() {
+        float total = 0;
+
+        // Har farmer ki wage calculate karke add karenge
+        for (int i = 0; i < count; i++) {
+            total += farmers[i].days * farmers[i].dailyWage;
+        }
+
+        cout << "Total Farmer Wages: Rs. "
+             << total << endl;
+    }
+
+    void menu() {
+        int choice;
+
+        do {
+            cout << "\n===== FARMER MANAGEMENT =====\n";
+            cout << "1. Add Farmer\n";
+            cout << "2. Display Farmers\n";
+            cout << "3. Search Farmer\n";
+            cout << "4. Update Farmer\n";
+            cout << "5. Delete Farmer\n";
+            cout << "6. Calculate Total Wages\n";
+            cout << "0. Back\n";
+
+            cout << "Enter choice: ";
+            cin >> choice;
+
+            switch (choice) {
+                case 1: addFarmer(); break;
+                case 2: displayFarmers(); break;
+                case 3: searchFarmer(); break;
+                case 4: updateFarmer(); break;
+                case 5: deleteFarmer(); break;
+                case 6: totalWages(); break;
+                case 0: break;
+                default: cout << "Invalid choice!\n";
+            }
+
+        } while (choice != 0);
+    }
+};
+
+#endif
