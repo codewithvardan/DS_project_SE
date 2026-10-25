@@ -1,147 +1,211 @@
+
+#ifndef CROP_H
+#define CROP_H
+
 #include <iostream>
-#include <cstring>
+#include <string>
 using namespace std;
 
-/* ====================== CROP MODULE (ARRAY) ====================== */
-
+// Ye class ek crop ki information store karti hai
 class Crop {
 private:
     int id;
-    char name[50];
-    char season[20];        // e.g., "Kharif", "Rabi"
-    float expectedYield;    // in quintals
-    float actualYield;
-    int area;               // in acres
-
-    // Array to store up to 100 crops
-    static Crop cropList[100];
-    static int cropCount;   // how many crops are actually stored
+    string name;
+    int quantity;
 
 public:
-    // Constructor (default)
+    // Constructor: Starting mein values initialize karenge
     Crop() {
         id = 0;
-        name[0] = '\0';
-        season[0] = '\0';
-        expectedYield = 0;
-        actualYield = 0;
-        area = 0;
+        quantity = 0;
     }
 
-    // Take crop details from user
+    // User se crop ki details lene ke liye
     void input() {
         cout << "Enter Crop ID: ";
         cin >> id;
 
         cout << "Enter Crop Name: ";
-        cin.ignore();  // ignore newline left in buffer
-        cin.getline(name, 50);
+        cin >> name;
 
-        cout << "Enter Season (Kharif/Rabi): ";
-        cin.getline(season, 20);
-
-        cout << "Enter Expected Yield (quintals): ";
-        cin >> expectedYield;
-
-        cout << "Enter Area (acres): ";
-        cin >> area;
-
-        actualYield = 0;  // initially no actual yield
+        cout << "Enter Quantity (kg): ";
+        cin >> quantity;
     }
 
-    // Display one crop's details
-    void display() const {
-        cout << "ID: " << id
-             << " | Name: " << name
-             << " | Season: " << season
-             << " | Exp. Yield: " << expectedYield
-             << " | Act. Yield: " << actualYield
-             << " | Area: " << area << " acres\n";
+    // Ek crop ki details display karenge
+    void display() {
+        cout << id << "\t" << name
+             << "\t" << quantity << " kg\n";
     }
 
-    // Add a new crop to the array
-    static void addCrop() {
-        if (cropCount >= 100) {
-            cout << "Crop list is full.\n";
+    // Crop ka ID return karega
+    int getId() {
+        return id;
+    }
+};
+
+// Ye class saare crops ko array mein manage karegi
+class CropManagement {
+private:
+    Crop crops[100]; // Maximum 100 crops store kar sakte hain
+    int count;       // Abhi kitne crops store hain
+
+public:
+    CropManagement() {
+        count = 0; // Starting mein array empty hai
+    }
+
+    // Naya crop add karna
+    void addCrop() {
+
+        // Check karenge array full toh nahi
+        if (count >= 100) {
+            cout << "Crop storage full!\n";
             return;
         }
 
-        cropList[cropCount].input();
-        cropCount++;
+        // Next empty position par details lenge
+        crops[count].input();
 
-        cout << "Crop added successfully.\n";
+        // Duplicate ID check karenge
+        for (int i = 0; i < count; i++) {
+            if (crops[i].getId() == crops[count].getId()) {
+                cout << "Crop ID already exists!\n";
+                return;
+            }
+        }
+
+        count++; // Ek crop add hua, isliye count badhayenge
+
+        cout << "Crop added successfully!\n";
     }
 
-    // Show all crops
-    static void listCrops() {
-        if (cropCount == 0) {
+    // Saare crops display karna
+    void displayCrops() {
+
+        if (count == 0) {
             cout << "No crops available.\n";
             return;
         }
 
-        for (int i = 0; i < cropCount; i++) {
-            cropList[i].display();
+        cout << "ID\tName\tQuantity\n";
+
+        // Loop se array ke saare elements print karenge
+        for (int i = 0; i < count; i++) {
+            crops[i].display();
         }
     }
 
-    // Search crop by ID, return pointer if found
-    static Crop* searchCropById(int id) {
-        for (int i = 0; i < cropCount; i++) {
-            if (cropList[i].id == id) {
-                return &cropList[i];
+    // ID ke through crop search karna
+    void searchCrop() {
+        int id;
+
+        cout << "Enter Crop ID: ";
+        cin >> id;
+
+        // Linear Search use kiya hai
+        for (int i = 0; i < count; i++) {
+
+            if (crops[i].getId() == id) {
+                crops[i].display();
+                return; // Crop mil gaya, function stop
             }
         }
-        return nullptr;  // not found
+
+        cout << "Crop not found!\n";
     }
 
-    // Update an existing crop by ID
-    static void updateCrop() {
+    // Existing crop ki details update karna
+    void updateCrop() {
         int id;
+
         cout << "Enter Crop ID to update: ";
         cin >> id;
 
-        Crop* c = searchCropById(id);
-        if (!c) {
-            cout << "Crop not found.\n";
-            return;
-        }
+        for (int i = 0; i < count; i++) {
 
-        cout << "Enter new details for this crop:\n";
-        c->input();  // re-enter all details
+            if (crops[i].getId() == id) {
 
-        cout << "Crop updated.\n";
-    }
+                cout << "Enter new crop details:\n";
 
-    // Delete a crop by ID
-    static void deleteCrop() {
-        int id;
-        cout << "Enter Crop ID to delete: ";
-        cin >> id;
+                // Purana ID same rakhenge
+                // Sirf name aur quantity update karenge
+                string newName;
+                int newQuantity;
 
-        int idx = -1;  // to store index of crop to delete
+                cout << "Enter New Name: ";
+                cin >> newName;
 
-        // Find the crop in the array
-        for (int i = 0; i < cropCount; i++) {
-            if (cropList[i].id == id) {
-                idx = i;
-                break;
+                cout << "Enter New Quantity: ";
+                cin >> newQuantity;
+
+                // Crop class ka update function call karenge
+                crops[i].update(newName, newQuantity);
+
+                cout << "Crop updated!\n";
+                return;
             }
         }
 
-        if (idx == -1) {
-            cout << "Crop not found.\n";
-            return;
+        cout << "Crop not found!\n";
+    }
+
+    // Crop delete karna
+    void deleteCrop() {
+        int id;
+
+        cout << "Enter Crop ID to delete: ";
+        cin >> id;
+
+        for (int i = 0; i < count; i++) {
+
+            if (crops[i].getId() == id) {
+
+                // Delete ke baad empty gap nahi chahiye
+                // Isliye next elements ko ek position left shift karenge
+                for (int j = i; j < count - 1; j++) {
+                    crops[j] = crops[j + 1];
+                }
+
+                count--; // Total crops ek kam ho gaye
+
+                cout << "Crop deleted!\n";
+                return;
+            }
         }
 
-        // Shift all elements after idx one step left
-        for (int i = idx; i < cropCount - 1; i++) {
-            cropList[i] = cropList[i + 1];
-        }
+        cout << "Crop not found!\n";
+    }
 
-        cropCount--;
-        cout << "Crop deleted.\n";
+    // Crop module ka menu
+    void menu() {
+        int choice;
+
+        do {
+            cout << "\n===== CROP MANAGEMENT =====\n";
+            cout << "1. Add Crop\n";
+            cout << "2. Display Crops\n";
+            cout << "3. Search Crop\n";
+            cout << "4. Update Crop\n";
+            cout << "5. Delete Crop\n";
+            cout << "0. Back\n";
+
+            cout << "Enter choice: ";
+            cin >> choice;
+
+            // User ki choice ke according function call hoga
+            switch (choice) {
+                case 1: addCrop(); break;
+                case 2: displayCrops(); break;
+                case 3: searchCrop(); break;
+                case 4: updateCrop(); break;
+                case 5: deleteCrop(); break;
+                case 0: break;
+                default: cout << "Invalid choice!\n";
+            }
+
+        } while (choice != 0); // 0 tak menu repeat hoga
     }
 };
 
-Crop Crop::cropList[100];
-int Crop::cropCount = 0;
+#endif
