@@ -1,150 +1,181 @@
+
+#ifndef FINANCE_H
+#define FINANCE_H
+
 #include <iostream>
-#include <cstring>
+#include <string>
 using namespace std;
 
-/* ====================== FINANCE MODULE (DOUBLY LINKED LIST) ====================== */
-
-class Finance {
-private:
+// Linked List ka ek transaction node
+class Transaction {
+public:
     int id;
-    char type[20];         // "Income" or "Expense"
-    char category[30];     // "Crop Sale", "Seeds", "Wages", etc.
+    string type;
+    string description;
     float amount;
-    int date;              // YYYYMMDD
 
-    // Doubly linked list pointers
-    Finance* prev;
-    Finance* next;
+    // Next transaction ka address
+    Transaction* next;
 
-    static Finance* head;
-    static int nextId;     // to generate unique IDs
+    // Constructor: Node ki values set karenge
+    Transaction(int i, string t, string d, float a) {
+        id = i;
+        type = t;
+        description = d;
+        amount = a;
+        next = NULL;
+    }
+};
+
+class FinanceManagement {
+private:
+    Transaction* head; // First transaction ka address
+    int nextId;         // Automatic transaction ID
 
 public:
-    Finance() {
-        id = 0;
-        type[0] = '\0';
-        category[0] = '\0';
-        amount = 0;
-        date = 0;
-        prev = nullptr;
-        next = nullptr;
+    FinanceManagement() {
+        head = NULL;
+        nextId = 1;
     }
 
-    void input() {
-        cout << "Enter Type (Income/Expense): ";
-        cin >> type;
+    // Income ya Expense add karne ke liye
+    void addTransaction(string type) {
+        string description;
+        float amount;
 
-        cout << "Enter Category: ";
-        cin.ignore();
-        cin.getline(category, 30);
+        cout << "Enter Description: ";
+        cin >> description;
 
         cout << "Enter Amount: ";
         cin >> amount;
 
-        cout << "Enter Date (YYYYMMDD): ";
-        cin >> date;
-
-        id = nextId++;  // assign unique ID
-    }
-
-    void display() const {
-        cout << "ID: " << id
-             << " | Type: " << type
-             << " | Category: " << category
-             << " | Amount: " << amount
-             << " | Date: " << date << "\n";
-    }
-
-    // Add new transaction at the end of the list
-    static void addTransaction() {
-        Finance* temp = new Finance();
-        temp->input();
-
-        if (!head) {
-            // List is empty
-            head = temp;
-        } else {
-            // Go to last node
-            Finance* curr = head;
-            while (curr->next) {
-                curr = curr->next;
-            }
-
-            // Link new node at the end
-            curr->next = temp;
-            temp->prev = curr;
-        }
-
-        cout << "Transaction added.\n";
-    }
-
-    static void listTransactions() {
-        if (!head) {
-            cout << "No transactions.\n";
+        if (amount <= 0) {
+            cout << "Invalid amount!\n";
             return;
         }
 
-        Finance* curr = head;
-        while (curr) {
-            curr->display();
-            curr = curr->next;
+        // Memory mein naya transaction node banega
+        Transaction* node =
+            new Transaction(nextId, type, description, amount);
+
+        nextId++; // Next transaction ke liye ID badhayenge
+
+        if (head == NULL) {
+            // Agar list empty hai toh first node head banega
+            head = node;
         }
+        else {
+            Transaction* temp = head;
+
+            // Linked list ke last node tak jayenge
+            while (temp->next != NULL) {
+                temp = temp->next;
+            }
+
+            // Last node ke baad new node connect
+            temp->next = node;
+        }
+
+        cout << "Transaction added!\n";
     }
 
-    static void deleteTransaction() {
-        int id;
-        cout << "Enter Transaction ID to delete: ";
-        cin >> id;
-
-        // Find node
-        Finance* curr = head;
-        while (curr && curr->id != id) {
-            curr = curr->next;
-        }
-
-        if (!curr) {
-            cout << "Transaction not found.\n";
+    // Saare income aur expense records display karna
+    void displayTransactions() {
+        if (head == NULL) {
+            cout << "No transactions!\n";
             return;
         }
 
-        // Adjust links
-        if (curr == head) {
-            head = curr->next;
-            if (head) {
-                head->prev = nullptr;
-            }
-        } else {
-            if (curr->prev) {
-                curr->prev->next = curr->next;
-            }
-            if (curr->next) {
-                curr->next->prev = curr->prev;
-            }
-        }
+        Transaction* temp = head;
 
-        delete curr;
-        cout << "Transaction deleted.\n";
+        cout << "ID\tType\tDescription\tAmount\n";
+
+        // Linked list traverse karenge
+        while (temp != NULL) {
+            cout << temp->id << "\t"
+                 << temp->type << "\t"
+                 << temp->description << "\t"
+                 << temp->amount << endl;
+
+            // Next transaction par move
+            temp = temp->next;
+        }
     }
 
-    static void showSummary() {
-        float totalIncome = 0, totalExpense = 0;
+    // Profit aur Loss calculate karna
+    void calculateProfitLoss() {
+        float income = 0;
+        float expense = 0;
 
-        Finance* curr = head;
-        while (curr) {
-            if (strcmp(curr->type, "Income") == 0) {
-                totalIncome += curr->amount;
-            } else if (strcmp(curr->type, "Expense") == 0) {
-                totalExpense += curr->amount;
+        Transaction* temp = head;
+
+        while (temp != NULL) {
+
+            // Income hai toh income variable mein add
+            if (temp->type == "Income") {
+                income += temp->amount;
             }
-            curr = curr->next;
+            else {
+                // Otherwise expense mein add
+                expense += temp->amount;
+            }
+
+            temp = temp->next;
         }
 
-        cout << "Total Income: " << totalIncome << "\n";
-        cout << "Total Expense: " << totalExpense << "\n";
-        cout << "Profit/Loss: " << (totalIncome - totalExpense) << "\n";
+        cout << "\nTotal Income: Rs. " << income;
+        cout << "\nTotal Expense: Rs. " << expense;
+
+        // Formula: Profit/Loss = Income - Expense
+        float result = income - expense;
+
+        if (result > 0) {
+            cout << "\nProfit: Rs. " << result << endl;
+        }
+        else if (result < 0) {
+            cout << "\nLoss: Rs. " << -result << endl;
+        }
+        else {
+            cout << "\nNo Profit No Loss\n";
+        }
+    }
+
+    // Destructor: Program end par saare nodes delete
+    ~FinanceManagement() {
+        while (head != NULL) {
+            Transaction* temp = head;
+            head = head->next;
+
+            // Dynamically allocated memory free
+            delete temp;
+        }
+    }
+
+    void menu() {
+        int choice;
+
+        do {
+            cout << "\n===== FINANCE MANAGEMENT =====\n";
+            cout << "1. Add Income\n";
+            cout << "2. Add Expense\n";
+            cout << "3. Display Transactions\n";
+            cout << "4. Calculate Profit/Loss\n";
+            cout << "0. Back\n";
+
+            cout << "Enter choice: ";
+            cin >> choice;
+
+            switch (choice) {
+                case 1: addTransaction("Income"); break;
+                case 2: addTransaction("Expense"); break;
+                case 3: displayTransactions(); break;
+                case 4: calculateProfitLoss(); break;
+                case 0: break;
+                default: cout << "Invalid choice!\n";
+            }
+
+        } while (choice != 0);
     }
 };
 
-// Define static members for Finance
-Finance* Finance::head = nullptr;
-int Finance::nextId = 1;
+#endif
