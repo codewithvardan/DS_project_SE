@@ -3,11 +3,11 @@
 using namespace std;
 
 // Saare module ki header files include karenge
-#include "Crop.h"
-#include "Equipment.h"
-#include "Farmer.h"
-#include "Finance.h"
-#include "Production.h"
+#include "Crop.cpp"
+#include "Equipment.cpp"
+#include "Farmer.cpp"
+#include "Finance.cpp"
+#include "Production.cpp"
 
 int main() {
 
